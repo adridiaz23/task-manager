@@ -1,74 +1,94 @@
-// App.jsx — componente raíz
-// En React, un "componente" es una función que devuelve HTML (JSX)
 import { useState, useEffect } from 'react'
-import TaskForm from './components/TaskForm.jsx'
-import TaskList from './components/TaskList.jsx'
+import TaskForm from './components/TaskForm'
+import TaskList from './components/TaskList'
+// import FilterBar from './components/FilterBar' // ← descomenta cuando exista ./components/FilterBar.jsx
 
 function App() {
-  // useState([]) crea una variable de estado "tasks"
-  // que empieza como array vacío.
-  // Cuando llamamos a setTasks(...), React re-renderiza el componente.
   const [tasks, setTasks] = useState([])
 
-  // useEffect se ejecuta DESPUÉS de que el componente se pinte.
-  // El [] al final significa "solo la primera vez que monta el componente".
-  // Aquí leemos las tareas guardadas en localStorage (si las hay).
+  // NUEVO: estado para el filtro activo
+  // Puede ser 'all', 'pending' o 'completed'
+  const [filter, setFilter] = useState('all')
+
   useEffect(() => {
     const saved = localStorage.getItem('tasks')
-    // JSON.parse convierte el texto guardado de nuevo a array JavaScript
     if (saved) setTasks(JSON.parse(saved))
   }, [])
 
-  // Este useEffect guarda las tareas cada vez que el array "tasks" cambia.
-  // [tasks] en el segundo argumento es la "dependencia": se ejecuta
-  // cuando "tasks" cambia.
   useEffect(() => {
-    // JSON.stringify convierte el array a texto para poder guardarlo
     localStorage.setItem('tasks', JSON.stringify(tasks))
   }, [tasks])
 
-  // Función para añadir una tarea nueva
-  // Recibe el "text" desde el componente TaskForm
   const addTask = (text) => {
-    const newTask = {
-      id: Date.now(),      // id único usando timestamp actual
-      text: text,          // el texto que escribió el usuario
-      completed: false,    // por defecto, no está completada
-    }
-    // No modificamos el array directamente.
-    // Creamos uno NUEVO con el spread operator (...tasks).
-    // Esto es fundamental en React: nunca mutar el estado directamente.
-    setTasks([...tasks, newTask])
+    setTasks([...tasks, {
+      id: Date.now(),
+      text,
+      completed: false,
+    }])
   }
 
-  // Función para marcar/desmarcar una tarea como completada
-  // Recibe el id de la tarea a modificar
   const toggleTask = (id) => {
-    setTasks(
-      tasks.map(task =>
-        // Si es la tarea que buscamos, invertimos "completed"
-        // Si no, la dejamos igual
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    )
+    setTasks(tasks.map(task =>
+      task.id === id ? { ...task, completed: !task.completed } : task
+    ))
   }
 
-  // Función para eliminar una tarea
   const deleteTask = (id) => {
-    // filter crea un nuevo array sin la tarea con ese id
     setTasks(tasks.filter(task => task.id !== id))
   }
 
-  // El JSX que devuelve es lo que se pinta en pantalla
+  // NUEVO: función para editar el texto de una tarea existente
+  // Recibe el id de la tarea a editar y el nuevo texto
+  const editTask = (id, newText) => {
+    // Si el nuevo texto está vacío, no hacemos nada
+    // (la validación también existe en TaskItem, pero es buena práctica
+    //  validar en ambos lados: en el componente y en la fuente de verdad)
+    if (!newText.trim()) return
+
+    setTasks(tasks.map(task =>
+      // Si es la tarea que buscamos, devolvemos una copia con el texto nuevo
+      // El spread ...task conserva id y completed intactos
+      task.id === id ? { ...task, text: newText.trim() } : task
+    ))
+  }
+
+  // NUEVO: lógica de filtrado
+  // En lugar de pasar "tasks" directamente a TaskList, calculamos
+  // "filteredTasks" basándonos en el filtro activo.
+  // Esto NO modifica el estado original, solo crea una vista derivada.
+  const filteredTasks = tasks.filter(task => {
+    if (filter === 'pending')   return !task.completed
+    if (filter === 'completed') return task.completed
+    return true  // 'all': devolvemos todas
+  })
+
+  // NUEVO: contadores para mostrar en la UI
+  const totalCount     = tasks.length
+  const pendingCount   = tasks.filter(t => !t.completed).length
+  const completedCount = tasks.filter(t => t.completed).length
+
   return (
     <div className="app">
       <h1>📝 Task Manager</h1>
-      {/* Pasamos funciones como "props" a los componentes hijos */}
+
       <TaskForm onAdd={addTask} />
+
+      {/* FilterBar: descomenta import arriba y este bloque cuando exista ./components/FilterBar.jsx
+      <FilterBar
+        activeFilter={filter}
+        onFilterChange={setFilter}
+        totalCount={totalCount}
+        pendingCount={pendingCount}
+        completedCount={completedCount}
+      />
+      */}
+
+      {/* Pasamos filteredTasks en lugar de tasks */}
       <TaskList
-        tasks={tasks}
+        tasks={filteredTasks}
         onToggle={toggleTask}
         onDelete={deleteTask}
+        onEdit={editTask}
       />
     </div>
   )
