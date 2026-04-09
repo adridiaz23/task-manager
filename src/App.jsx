@@ -1,67 +1,8 @@
 // App.jsx — componente raíz
 // En React, un "componente" es una función que devuelve HTML (JSX)
 import { useState, useEffect } from 'react'
-
-function TaskForm({ onAdd }) {
-  const [text, setText] = useState('')
-
-  const onSubmit = (e) => {
-    e.preventDefault()
-    const trimmed = text.trim()
-    if (!trimmed) return
-    onAdd(trimmed)
-    setText('')
-  }
-
-  return (
-    <form className="task-form" onSubmit={onSubmit}>
-      <input
-        className="task-input"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Escribe una tarea…"
-        aria-label="Nueva tarea"
-      />
-      <button className="btn-add" type="submit">
-        Añadir
-      </button>
-    </form>
-  )
-}
-
-function TaskList({ tasks, onToggle, onDelete }) {
-  if (!tasks.length) {
-    return <div className="empty-msg">No hay tareas todavía.</div>
-  }
-
-  return (
-    <ul className="task-list">
-      {tasks.map((task) => (
-        <li
-          key={task.id}
-          className={`task-item${task.completed ? ' completed' : ''}`}
-        >
-          <input
-            type="checkbox"
-            checked={task.completed}
-            onChange={() => onToggle(task.id)}
-            aria-label={`Marcar tarea: ${task.text}`}
-          />
-          <span className="task-text">{task.text}</span>
-          <button
-            className="btn-delete"
-            type="button"
-            onClick={() => onDelete(task.id)}
-            aria-label={`Eliminar tarea: ${task.text}`}
-            title="Eliminar"
-          >
-            ✕
-          </button>
-        </li>
-      ))}
-    </ul>
-  )
-}
+import TaskForm from './components/TaskForm.jsx'
+import TaskList from './components/TaskList.jsx'
 
 function App() {
   // useState([]) crea una variable de estado "tasks"
