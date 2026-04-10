@@ -136,3 +136,96 @@ h1 {
   .task-form { flex-direction: column; }
   .btn-add { width: 100%; }
 }
+/* Input de edición inline dentro de la tarea */
+.task-edit-input {
+  flex: 1;
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius);
+  outline: none;
+  /* Hereda el color del texto para que no cambie visualmente */
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+/* Botón de editar — al lado del texto */
+.btn-edit {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+  /* Oculto por defecto, solo visible al hacer hover en la tarea */
+  opacity: 0;
+  transition: opacity 0.15s, color 0.2s;
+}
+
+/* Mostramos el botón editar al pasar el ratón por la tarea */
+.task-item:hover .btn-edit {
+  opacity: 1;
+}
+
+.btn-edit:hover {
+  color: var(--color-primary);
+  background: #eef2ff;
+}
+
+/* Barra de filtros */
+.filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  /* Permite scroll horizontal en móvil si los botones no caben */
+  overflow-x: auto;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: 999px;   /* forma de píldora */
+  background: white;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;    /* evita que el texto se parta en dos líneas */
+}
+
+.filter-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Filtro activo: fondo sólido */
+.filter-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* Badge con el número */
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  /* Colores distintos según si el botón está activo o no */
+  background: rgba(0, 0, 0, 0.1);
+  color: inherit;
+}
+
+.filter-btn.active .filter-count {
+  background: rgba(255, 255, 255, 0.25);
+}
