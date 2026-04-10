@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
-// import FilterBar from './components/FilterBar' // ← descomenta cuando exista ./components/FilterBar.jsx
+import FilterBar from './components/FilterBar' 
 
 function App() {
   const [tasks, setTasks] = useState([])
@@ -73,7 +73,7 @@ function App() {
 
       <TaskForm onAdd={addTask} />
 
-      {/* FilterBar: descomenta import arriba y este bloque cuando exista ./components/FilterBar.jsx
+      {
       <FilterBar
         activeFilter={filter}
         onFilterChange={setFilter}
@@ -81,7 +81,7 @@ function App() {
         pendingCount={pendingCount}
         completedCount={completedCount}
       />
-      */}
+      }
 
       {/* Pasamos filteredTasks en lugar de tasks */}
       <TaskList
