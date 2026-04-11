@@ -1,14 +1,25 @@
 import { useState, useEffect } from 'react'
-import TaskForm from './components/TaskForm'
-import TaskList from './components/TaskList'
-import FilterBar from './components/FilterBar' 
+import TaskForm    from './components/TaskForm'
+import TaskList    from './components/TaskList'
+import FilterBar   from './components/FilterBar'
 
 function App() {
-  const [tasks, setTasks] = useState([])
-
-  // NUEVO: estado para el filtro activo
-  // Puede ser 'all', 'pending' o 'completed'
+  const [tasks,  setTasks]  = useState([])
   const [filter, setFilter] = useState('all')
+
+  // NUEVO: estado del tema. Leemos del localStorage para recordar la preferencia
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('theme') === 'dark'
+  })
+
+  // NUEVO: sincronizamos el atributo data-theme en <html> cada vez que cambia darkMode
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      'data-theme',
+      darkMode ? 'dark' : 'light'
+    )
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light')
+  }, [darkMode])
 
   useEffect(() => {
     const saved = localStorage.getItem('tasks')
@@ -19,61 +30,35 @@ function App() {
     localStorage.setItem('tasks', JSON.stringify(tasks))
   }, [tasks])
 
-  const addTask = (text) => {
-    setTasks([...tasks, {
-      id: Date.now(),
-      text,
-      completed: false,
-    }])
-  }
+  const addTask    = (text)          => setTasks([...tasks, { id: Date.now(), text, completed: false, priority: 'medium' }])
+  const toggleTask = (id)            => setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t))
+  const deleteTask = (id)            => setTasks(tasks.filter(t => t.id !== id))
+  const editTask   = (id, newText)   => { if (!newText.trim()) return; setTasks(tasks.map(t => t.id === id ? { ...t, text: newText.trim() } : t)) }
 
-  const toggleTask = (id) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ))
-  }
+  // NUEVO: cambiar la prioridad de una tarea (Commit 4)
+  const changePriority = (id, priority) => setTasks(tasks.map(t => t.id === id ? { ...t, priority } : t))
 
-  const deleteTask = (id) => {
-    setTasks(tasks.filter(task => task.id !== id))
-  }
-
-  // NUEVO: función para editar el texto de una tarea existente
-  // Recibe el id de la tarea a editar y el nuevo texto
-  const editTask = (id, newText) => {
-    // Si el nuevo texto está vacío, no hacemos nada
-    // (la validación también existe en TaskItem, pero es buena práctica
-    //  validar en ambos lados: en el componente y en la fuente de verdad)
-    if (!newText.trim()) return
-
-    setTasks(tasks.map(task =>
-      // Si es la tarea que buscamos, devolvemos una copia con el texto nuevo
-      // El spread ...task conserva id y completed intactos
-      task.id === id ? { ...task, text: newText.trim() } : task
-    ))
-  }
-
-  // NUEVO: lógica de filtrado
-  // En lugar de pasar "tasks" directamente a TaskList, calculamos
-  // "filteredTasks" basándonos en el filtro activo.
-  // Esto NO modifica el estado original, solo crea una vista derivada.
-  const filteredTasks = tasks.filter(task => {
-    if (filter === 'pending')   return !task.completed
-    if (filter === 'completed') return task.completed
-    return true  // 'all': devolvemos todas
-  })
-
-  // NUEVO: contadores para mostrar en la UI
+  const filteredTasks  = tasks.filter(t => filter === 'pending' ? !t.completed : filter === 'completed' ? t.completed : true)
   const totalCount     = tasks.length
   const pendingCount   = tasks.filter(t => !t.completed).length
   const completedCount = tasks.filter(t => t.completed).length
 
   return (
     <div className="app">
-      <h1>📝 Task Manager</h1>
+      <header className="app-header">
+        <h1>📝 Task Manager</h1>
+        {/* Toggle tema oscuro/claro */}
+        <button
+          className="btn-theme"
+          onClick={() => setDarkMode(d => !d)}
+          aria-label={darkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+        >
+          {darkMode ? '☀️ Claro' : '🌙 Oscuro'}
+        </button>
+      </header>
 
       <TaskForm onAdd={addTask} />
 
-      {
       <FilterBar
         activeFilter={filter}
         onFilterChange={setFilter}
@@ -81,14 +66,13 @@ function App() {
         pendingCount={pendingCount}
         completedCount={completedCount}
       />
-      }
 
-      {/* Pasamos filteredTasks en lugar de tasks */}
       <TaskList
         tasks={filteredTasks}
         onToggle={toggleTask}
         onDelete={deleteTask}
         onEdit={editTask}
+        onPriorityChange={changePriority}
       />
     </div>
   )
