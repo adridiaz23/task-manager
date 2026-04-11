@@ -19,8 +19,15 @@ function TaskItem({ task, onToggle, onDelete, onEdit, onPriorityChange }) {
   }
 
   const handleEditKeyDown = (e) => {
-    if (e.key === 'Enter')  handleEditSubmit()
-    if (e.key === 'Escape') { setEditValue(task.text); setIsEditing(false) }
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleEditSubmit()
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      setEditValue(task.text)
+      setIsEditing(false)
+    }
   }
 
   // Cicla entre las prioridades: high → medium → low → high

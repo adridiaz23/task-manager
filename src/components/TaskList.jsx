@@ -1,3 +1,5 @@
+import TaskItem from './TaskItem'
+
 function TaskList({ tasks, allTasksCount, onToggle, onDelete, onEdit, onPriorityChange }) {
   // allTasksCount: total de tareas sin filtrar (lo añadiremos en App)
   // Lo usamos para distinguir "no hay tareas" de "el filtro no encuentra nada"

@@ -33,7 +33,11 @@ function App() {
   const addTask    = (text)          => setTasks([...tasks, { id: Date.now(), text, completed: false, priority: 'medium' }])
   const toggleTask = (id)            => setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t))
   const deleteTask = (id)            => setTasks(tasks.filter(t => t.id !== id))
-  const editTask   = (id, newText)   => { if (!newText.trim()) return; setTasks(tasks.map(t => t.id === id ? { ...t, text: newText.trim() } : t)) }
+  const editTask = (id, newText) => {
+    const trimmed = newText.trim()
+    if (!trimmed) return
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, text: trimmed } : t)))
+  }
 
   // NUEVO: cambiar la prioridad de una tarea (Commit 4)
   const changePriority = (id, priority) => setTasks(tasks.map(t => t.id === id ? { ...t, priority } : t))
