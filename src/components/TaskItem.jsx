@@ -1,80 +1,82 @@
-// TaskItem.jsx — con edición inline
 import { useState } from 'react'
 
-function TaskItem({ task, onToggle, onDelete, onEdit }) {
-  // Estado LOCAL de este componente: ¿estamos editando ahora mismo?
-  // No sube a App porque solo le importa a este componente.
-  const [isEditing, setIsEditing] = useState(false)
+// Configuración de prioridades: label, color del badge
+// Usar un objeto de configuración en lugar de if/else es más mantenible
+const PRIORITY_CONFIG = {
+  high:   { label: 'Alta',  className: 'high'   },
+  medium: { label: 'Media', className: 'medium' },
+  low:    { label: 'Baja',  className: 'low'    },
+}
 
-  // Estado LOCAL para el texto del input mientras se edita
-  // Lo inicializamos con el texto actual de la tarea
+function TaskItem({ task, onToggle, onDelete, onEdit, onPriorityChange }) {
+  const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(task.text)
 
-  // Se llama cuando el usuario confirma la edición
-  // (pulsando Enter o haciendo clic fuera del input — onBlur)
   const handleEditSubmit = () => {
-    // Si el campo quedó vacío, cancelamos sin borrar la tarea
-    if (editValue.trim() === '') {
-      setEditValue(task.text)  // restauramos el valor original
-      setIsEditing(false)
-      return
-    }
-    onEdit(task.id, editValue)  // llamamos a App con el nuevo texto
-    setIsEditing(false)         // volvemos al modo vista
+    if (editValue.trim() === '') { setEditValue(task.text); setIsEditing(false); return }
+    onEdit(task.id, editValue)
+    setIsEditing(false)
   }
 
-  // Se llama cuando el usuario pulsa una tecla en el input de edición
   const handleEditKeyDown = (e) => {
-    if (e.key === 'Enter')  handleEditSubmit()   // confirmar con Enter
-    if (e.key === 'Escape') {
-      // Cancelar con Escape: restauramos el valor original
-      setEditValue(task.text)
-      setIsEditing(false)
-    }
+    if (e.key === 'Enter')  handleEditSubmit()
+    if (e.key === 'Escape') { setEditValue(task.text); setIsEditing(false) }
   }
+
+  // Cicla entre las prioridades: high → medium → low → high
+  const cyclePriority = () => {
+    const order = ['high', 'medium', 'low']
+    const next  = order[(order.indexOf(task.priority) + 1) % order.length]
+    onPriorityChange(task.id, next)
+  }
+
+  const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium
 
   return (
-    <li className={`task-item ${task.completed ? 'completed' : ''}`}>
+    <li className={`task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`}>
       <input
         type="checkbox"
         checked={task.completed}
         onChange={() => onToggle(task.id)}
+        aria-label={`Marcar "${task.text}" como ${task.completed ? 'pendiente' : 'completada'}`}
       />
 
-      {/* Renderizado condicional: si isEditing es true mostramos
-          el input; si no, mostramos el texto normal */}
       {isEditing ? (
         <input
           type="text"
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
-          onBlur={handleEditSubmit}    // confirmar al perder el foco
+          onBlur={handleEditSubmit}
           onKeyDown={handleEditKeyDown}
           className="task-input task-edit-input"
-          // autoFocus: el cursor aparece automáticamente en el input
+          maxLength={120}
           autoFocus
         />
       ) : (
         <span
           className="task-text"
-          // Doble clic para activar el modo edición
-          onDoubleClick={() => {
-            setEditValue(task.text)  // sincronizamos con el valor actual
-            setIsEditing(true)
-          }}
+          onDoubleClick={() => { setEditValue(task.text); setIsEditing(true) }}
           title="Doble clic para editar"
         >
           {task.text}
         </span>
       )}
 
-      {/* Botón de editar (alternativa al doble clic) */}
+      {/* Badge de prioridad — al hacer clic cicla entre los 3 niveles */}
       {!isEditing && (
         <button
-          onClick={() => {
-            setEditValue(task.text)
-            setIsEditing(true)
-          }}
+          onClick={cyclePriority}
+          className={`priority-badge ${priority.className}`}
+          title="Cambiar prioridad"
+          aria-label={`Prioridad ${priority.label}. Clic para cambiar.`}
+        >
+          {priority.label}
+        </button>
+      )}
+
+      {!isEditing && (
+        <button
+          onClick={() => { setEditValue(task.text); setIsEditing(true) }}
           className="btn-edit"
           aria-label="Editar tarea"
         >
