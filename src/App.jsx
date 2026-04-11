@@ -69,6 +69,7 @@ function App() {
 
       <TaskList
         tasks={filteredTasks}
+        allTasksCount={totalCount}   
         onToggle={toggleTask}
         onDelete={deleteTask}
         onEdit={editTask}
